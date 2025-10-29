@@ -4,6 +4,9 @@ import 'dotenv/config';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const userData = new Map();
+const app = express();
+
+app.use(express.json());
 
 // Таблиця відсотків за строками (умовно)
 const rates = {
@@ -90,12 +93,16 @@ bot.action(/term_(\d+)/, async (ctx) => {
   userData.delete(chatId);
   setTimeout(() => ctx.reply('🔁 Хочеш зробити новий розрахунок? Введи нову суму:'), 500);
 });
+bot.start((ctx) => ctx.reply("Бот запущено ✅"));
 
-bot.launch();
-console.log('Бот запущено ✅');
+const PORT = process.env.PORT || 10000;
+const URL = "https://telegram-chast.onrender.com"; // твоя адреса на Render
 
-// 🟢 Додаємо Express, щоб Render бачив відкритий порт
-const app = express();
-const PORT = process.env.PORT || 3000;
-app.get('/', (req, res) => res.send('Bot is running ✅'));
-app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
+app.use(bot.webhookCallback("/secret-path"));
+bot.telegram.setWebhook(`${URL}/secret-path`);
+
+app.get("/", (req, res) => res.send("Бот працює! 🚀"));
+
+app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}`);
+});
