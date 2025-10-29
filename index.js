@@ -7,11 +7,11 @@ const app = express();
 
 app.use(express.json());
 
+// ====== логіка бота ======
 const userData = new Map();
 
-// Таблиця відсотків за строками (умовно)
 const rates = {
-  3: 0.031,  
+  3: 0.031,
   4: 0.047,
   5: 0.062,
   6: 0.079,
@@ -32,12 +32,11 @@ const rates = {
   21: 0.223,
   22: 0.227,
   23: 0.231,
-  24: 0.235
+  24: 0.235,
 };
 
-// === Логіка бота ===
 bot.start((ctx) => {
-  ctx.reply('Привіт 👋 Вкажи суму кредиту, яку хочеш розрахувати:');
+  ctx.reply("Привіт 👋 Вкажи суму кредиту, яку хочеш розрахувати:");
   userData.delete(ctx.chat.id);
 });
 
@@ -47,7 +46,6 @@ bot.on("text", (ctx) => {
 
   if (!userData.has(chatId)) {
     const amount = parseFloat(text);
-
     if (isNaN(amount) || amount <= 0) {
       return ctx.reply("Введи правильну суму (наприклад, 10000).");
     }
@@ -85,9 +83,9 @@ bot.action(/term_(\d+)/, async (ctx) => {
 
   await ctx.reply(
     `💰 Початкова сума: ${data.amount.toFixed(2)} грн\n` +
-    `📆 Строк: ${months} міс.\n` +
-    `📈 Ставка: ${(rate * 100).toFixed(2)}%\n` +
-    `💵 Внести суму в програму потрібно: ${finalSum.toFixed(2)} грн`
+      `📆 Строк: ${months} міс.\n` +
+      `📈 Ставка: ${(rate * 100).toFixed(2)}%\n` +
+      `💵 Внести суму в програму потрібно: ${finalSum.toFixed(2)} грн`
   );
 
   userData.delete(chatId);
@@ -97,15 +95,18 @@ bot.action(/term_(\d+)/, async (ctx) => {
   }, 500);
 });
 
-// === Webhook ===
+// ====== webhook ======
 const PORT = process.env.PORT || 10000;
-const URL = "https://telegram-chast.onrender.com"; // заміни на свій Render URL
+const URL = "https://telegram-chast.onrender.com"; // твій Render URL
 
+// 🟢 webhook endpoint має бути підключений ДО setWebhook
 app.use(bot.webhookCallback("/bot"));
+
+// 🟢 webhook потрібно задати ПІСЛЯ цього
 bot.telegram.setWebhook(`${URL}/bot`);
 
 app.get("/", (req, res) => res.send("Бот працює ✅"));
 
 app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`✅ Сервер слухає порт ${PORT}`);
 });
