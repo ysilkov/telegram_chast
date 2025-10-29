@@ -1,6 +1,6 @@
 import { Telegraf, Markup } from 'telegraf';
+import express from 'express'; // 🟢 Додай express
 import 'dotenv/config';
-
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const userData = new Map();
@@ -42,7 +42,6 @@ bot.on('text', (ctx) => {
   const chatId = ctx.chat.id;
   const text = ctx.message.text.trim();
 
-  // Якщо користувач ще не вибрав суму — перевіряємо, чи це число
   if (!userData.has(chatId)) {
     const amount = parseFloat(text);
 
@@ -50,33 +49,24 @@ bot.on('text', (ctx) => {
       return ctx.reply('Введи правильну суму (наприклад, 10000).');
     }
 
-    // Зберігаємо суму
     userData.set(chatId, { amount });
 
-    // 🟢 Формуємо кнопки по 3 в рядок + показуємо % біля строку
     const keys = Object.keys(rates);
     const buttons = [];
 
     for (let i = 0; i < keys.length; i += 3) {
       buttons.push(
         keys.slice(i, i + 3).map(
-          (months) => Markup.button.callback(
-            `${months}`,
-            `term_${months}`
-          )
+          (months) => Markup.button.callback(`${months}`, `term_${months}`)
         )
       );
     }
 
-    return ctx.reply(
-      '📆 Обери строк кредиту:',
-      Markup.inlineKeyboard(buttons)
-    );
+    return ctx.reply('📆 Обери строк кредиту:', Markup.inlineKeyboard(buttons));
   }
 
   ctx.reply('Спочатку обери строк із кнопок нижче ⬇️');
 });
-
 
 bot.action(/term_(\d+)/, async (ctx) => {
   const months = parseInt(ctx.match[1]);
@@ -97,14 +87,15 @@ bot.action(/term_(\d+)/, async (ctx) => {
     `💵 Внести суму в програму потрібно: ${finalSum.toFixed(2)} грн`
   );
 
-  // Скидаємо дані користувача
   userData.delete(chatId);
-
-  // Через секунду просимо нову суму
-  setTimeout(() => {
-    ctx.reply('🔁 Хочеш зробити новий розрахунок? Введи нову суму:');
-  }, 500);
+  setTimeout(() => ctx.reply('🔁 Хочеш зробити новий розрахунок? Введи нову суму:'), 500);
 });
 
 bot.launch();
 console.log('Бот запущено ✅');
+
+// 🟢 Додаємо Express, щоб Render бачив відкритий порт
+const app = express();
+const PORT = process.env.PORT || 3000;
+app.get('/', (req, res) => res.send('Bot is running ✅'));
+app.listen(PORT, () => console.log(`Server is listening on port ${PORT}`));
