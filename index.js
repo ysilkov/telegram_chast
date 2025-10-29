@@ -1,8 +1,8 @@
 import { Telegraf, Markup } from 'telegraf';
+import 'dotenv/config';
+import { Telegraf } from 'telegraf';
 
-const bot = new Telegraf('8431862990:AAEIhtXrYzzIeGRxugw7_UD2S3y340PIt2A');
-
-// Зберігаємо стан користувача у пам’яті
+const bot = new Telegraf(process.env.BOT_TOKEN);
 const userData = new Map();
 
 // Таблиця відсотків за строками (умовно)
