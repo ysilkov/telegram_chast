@@ -1,12 +1,13 @@
-import { Telegraf, Markup } from 'telegraf';
-import express from 'express'; // 🟢 Додай express
-import 'dotenv/config';
+import express from "express";
+import { Telegraf, Markup } from "telegraf";
+import "dotenv/config";
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
-const userData = new Map();
 const app = express();
 
 app.use(express.json());
+
+const userData = new Map();
 
 // Таблиця відсотків за строками (умовно)
 const rates = {
@@ -15,33 +16,32 @@ const rates = {
   5: 0.062,
   6: 0.079,
   7: 0.091,
-  8: 0.105, // +10%
-  9: 0.117, // +17%
+  8: 0.105,
+  9: 0.117,
   10: 0.13,
   11: 0.136,
-  12: 0.143,  // +20%
+  12: 0.143,
   13: 0.149,
   14: 0.159,
   15: 0.17,
   16: 0.181,
   17: 0.193,
-  18: 0.205,  // +30%
+  18: 0.205,
   19: 0.212,
   20: 0.22,
   21: 0.223,
   22: 0.227,
   23: 0.231,
-  24: 0.235   // +40%
+  24: 0.235
 };
 
-// === /start ===
+// === Логіка бота ===
 bot.start((ctx) => {
   ctx.reply('Привіт 👋 Вкажи суму кредиту, яку хочеш розрахувати:');
-  userData.delete(ctx.chat.id); // очищаємо попередні дані
+  userData.delete(ctx.chat.id);
 });
 
-// === Обробка тексту ===
-bot.on('text', (ctx) => {
+bot.on("text", (ctx) => {
   const chatId = ctx.chat.id;
   const text = ctx.message.text.trim();
 
@@ -49,7 +49,7 @@ bot.on('text', (ctx) => {
     const amount = parseFloat(text);
 
     if (isNaN(amount) || amount <= 0) {
-      return ctx.reply('Введи правильну суму (наприклад, 10000).');
+      return ctx.reply("Введи правильну суму (наприклад, 10000).");
     }
 
     userData.set(chatId, { amount });
@@ -59,16 +59,16 @@ bot.on('text', (ctx) => {
 
     for (let i = 0; i < keys.length; i += 3) {
       buttons.push(
-        keys.slice(i, i + 3).map(
-          (months) => Markup.button.callback(`${months}`, `term_${months}`)
+        keys.slice(i, i + 3).map((months) =>
+          Markup.button.callback(`${months}`, `term_${months}`)
         )
       );
     }
 
-    return ctx.reply('📆 Обери строк кредиту:', Markup.inlineKeyboard(buttons));
+    return ctx.reply("📆 Обери строк кредиту:", Markup.inlineKeyboard(buttons));
   }
 
-  ctx.reply('Спочатку обери строк із кнопок нижче ⬇️');
+  ctx.reply("Спочатку обери строк із кнопок нижче ⬇️");
 });
 
 bot.action(/term_(\d+)/, async (ctx) => {
@@ -77,7 +77,7 @@ bot.action(/term_(\d+)/, async (ctx) => {
   const data = userData.get(chatId);
 
   if (!data) {
-    return ctx.reply('Спочатку введи суму кредиту.');
+    return ctx.reply("Спочатку введи суму кредиту.");
   }
 
   const rate = rates[months];
@@ -91,18 +91,21 @@ bot.action(/term_(\d+)/, async (ctx) => {
   );
 
   userData.delete(chatId);
-  setTimeout(() => ctx.reply('🔁 Хочеш зробити новий розрахунок? Введи нову суму:'), 500);
+
+  setTimeout(() => {
+    ctx.reply("🔁 Хочеш зробити новий розрахунок? Введи нову суму:");
+  }, 500);
 });
-bot.start((ctx) => ctx.reply("Бот запущено ✅"));
 
+// === Webhook ===
 const PORT = process.env.PORT || 10000;
-const URL = "https://telegram-chast.onrender.com"; // твоя адреса на Render
+const URL = "https://telegram-chast.onrender.com"; // заміни на свій Render URL
 
-app.use(bot.webhookCallback("/secret-path"));
-bot.telegram.setWebhook(`${URL}/secret-path`);
+app.use(bot.webhookCallback("/bot"));
+bot.telegram.setWebhook(`${URL}/bot`);
 
-app.get("/", (req, res) => res.send("Бот працює! 🚀"));
+app.get("/", (req, res) => res.send("Бот працює ✅"));
 
 app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
+  console.log(`✅ Server is running on port ${PORT}`);
 });
