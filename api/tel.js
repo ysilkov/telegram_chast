@@ -1,9 +1,10 @@
+import 'dotenv/config';
 import { Telegraf } from 'telegraf';
 import express from 'express';
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-// === логіка бота ===
+// === Логіка бота ===
 bot.start((ctx) => ctx.reply('Бот запущено ✅'));
 bot.on('text', (ctx) => ctx.reply(`Ти написав: ${ctx.message.text}`));
 
@@ -12,7 +13,7 @@ const app = express();
 app.use(express.json());
 
 // Telegram надсилатиме запити сюди:
-app.post(`/api/bot`, (req, res) => {
+app.post('/api/bot', (req, res) => {
   bot.handleUpdate(req.body, res);
 });
 
