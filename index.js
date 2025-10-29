@@ -2,37 +2,18 @@ import express from "express";
 import { Telegraf, Markup } from "telegraf";
 import "dotenv/config";
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
 const app = express();
-
 app.use(express.json());
 
-// ====== логіка бота ======
+const bot = new Telegraf(process.env.BOT_TOKEN);
 const userData = new Map();
 
+// ====== Логіка бота ======
 const rates = {
-  3: 0.031,
-  4: 0.047,
-  5: 0.062,
-  6: 0.079,
-  7: 0.091,
-  8: 0.105,
-  9: 0.117,
-  10: 0.13,
-  11: 0.136,
-  12: 0.143,
-  13: 0.149,
-  14: 0.159,
-  15: 0.17,
-  16: 0.181,
-  17: 0.193,
-  18: 0.205,
-  19: 0.212,
-  20: 0.22,
-  21: 0.223,
-  22: 0.227,
-  23: 0.231,
-  24: 0.235,
+  3: 0.031, 4: 0.047, 5: 0.062, 6: 0.079, 7: 0.091, 8: 0.105,
+  9: 0.117, 10: 0.13, 11: 0.136, 12: 0.143, 13: 0.149, 14: 0.159,
+  15: 0.17, 16: 0.181, 17: 0.193, 18: 0.205, 19: 0.212, 20: 0.22,
+  21: 0.223, 22: 0.227, 23: 0.231, 24: 0.235,
 };
 
 bot.start((ctx) => {
@@ -54,7 +35,6 @@ bot.on("text", (ctx) => {
 
     const keys = Object.keys(rates);
     const buttons = [];
-
     for (let i = 0; i < keys.length; i += 3) {
       buttons.push(
         keys.slice(i, i + 3).map((months) =>
@@ -95,18 +75,21 @@ bot.action(/term_(\d+)/, async (ctx) => {
   }, 500);
 });
 
-// ====== webhook ======
-const PORT = process.env.PORT || 10000;
-const URL = "https://telegram-chast.onrender.com"; // твій Render URL
-
-// 🟢 webhook endpoint має бути підключений ДО setWebhook
+// ====== Підключення webhook перед setWebhook ======
 app.use(bot.webhookCallback("/bot"));
 
-// 🟢 webhook потрібно задати ПІСЛЯ цього
-bot.telegram.setWebhook(`${URL}/bot`);
+// ====== Webhook setup ======
+const PORT = process.env.PORT || 10000;
+const URL = "https://telegram-chast.onrender.com"; // твій URL Render
+
+// невелика затримка перед реєстрацією webhook
+setTimeout(() => {
+  bot.telegram.setWebhook(`${URL}/bot`);
+  console.log(`✅ Webhook set to ${URL}/bot`);
+}, 1500);
 
 app.get("/", (req, res) => res.send("Бот працює ✅"));
 
 app.listen(PORT, () => {
-  console.log(`✅ Сервер слухає порт ${PORT}`);
+  console.log(`🚀 Сервер слухає порт ${PORT}`);
 });
